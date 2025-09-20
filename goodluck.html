@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Good Luck!</title>
+<style>
+  :root{
+    --bg1:#fff7ea;
+    --bg2:#fff1f8;
+    --accent:#ff5c8a;
+    --muted:#6b6b7a;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg1),var(--bg2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:100%;
+    max-width:760px;
+    background:rgba(255,255,255,0.9);
+    border-radius:18px;
+    box-shadow: 0 10px 30px rgba(16,24,40,0.12);
+    padding:36px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  h1{
+    margin:0 0 8px 0;
+    font-size:2.2rem;
+    color:var(--accent);
+    letter-spacing: -0.5px;
+  }
+  p.lead{
+    margin:0 0 22px 0;
+    color:var(--muted);
+    font-size:1rem;
+  }
+  .reveal-btn{
+    display:inline-block;
+    background: linear-gradient(90deg,#ff8ab3,#ff5c8a);
+    color:white;
+    border:none;
+    padding:14px 26px;
+    border-radius:12px;
+    font-weight:600;
+    font-size:1rem;
+    cursor:pointer;
+    box-shadow: 0 8px 20px rgba(255,92,138,0.25);
+    transition:transform .12s ease;
+  }
+  .reveal-btn:active{ transform:translateY(2px) scale(.995); }
+  .message{
+    margin-top:22px;
+    opacity:0;
+    transform:translateY(8px) scale(.99);
+    transition: all .5s cubic-bezier(.2,.9,.3,1);
+  }
+  .message.show{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  .message h2{
+    margin:0 0 10px 0;
+    font-size:1.6rem;
+    color:#222;
+  }
+  .message p{
+    margin:0;
+    color:#444;
+    line-height:1.45;
+  }
+
+  /* simple confetti pieces */
+  .confetti-piece{
+    position:absolute;
+    width:10px;
+    height:14px;
+    background:var(--accent);
+    top:-20px;
+    opacity:0.95;
+    transform-origin:center;
+    pointer-events:none;
+    border-radius:2px;
+    will-change: transform, top, left;
+  }
+  /* small screen adjustments */
+  @media (max-width:420px){
+    h1{ font-size:1.6rem }
+    .reveal-btn{ padding:12px 18px; font-size:.95rem }
+  }
+</style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="Good luck card">
+    <h1>Good luck, <span id="friendName">Ma'am Johanna</span>! 🍀</h1> 
+    <p class="lead">Your big day is tomorrow — I believe in you. Press the button for a little cheer!</p>
+
+    <button class="reveal-btn" id="revealBtn" aria-haspopup="true" aria-controls="message">Open your message</button>
+
+    <div class="message" id="message" role="status" aria-live="polite">
+      <h2>You've got this!</h2>
+      <p>
+        Tomorrow you’ll walk into that exam room with everything you’ve prepared for.
+       Have faith in yourself, rely on all the effort you’ve poured in, and let your future as a teacher shine.
+        Best of luck on the LET — I’m cheering for you and already so proud. ✨
+      </p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const colors = ["#FF5C8A","#FF8AB3","#FFCF7A","#8AD9FF","#A4FFB7"];
+  const card = document.querySelector('.card');
+  const btn = document.getElementById('revealBtn');
+  const msg = document.getElementById('message');
+  const nameEl = document.getElementById('friendName');
+
+  // Optionally read name from URL query: ?name=Jov
+  const params = new URLSearchParams(location.search);
+  if(params.has('name')){
+    const nm = params.get('name').replace(/\+/g," ");
+    nameEl.textContent = nm;
+  }
+
+  function makeConfettiBurst(count=30){
+    const rect = card.getBoundingClientRect();
+    for(let i=0;i<count;i++){
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      // start position - random across top of card
+      const startX = Math.random() * rect.width;
+      el.style.left = startX + 'px';
+      el.style.top = '-30px';
+      // random rotation
+      el.style.transform = 'rotate(' + (Math.random()*360) + 'deg)';
+      card.appendChild(el);
+      // animate manually
+      animateConfetti(el, rect);
+      // remove after some time
+      setTimeout(()=> el.remove(), 5200);
+    }
+  }
+
+  function animateConfetti(el, rect){
+    const duration = 4200 + Math.random()*800;
+    const startLeft = parseFloat(el.style.left);
+    const endLeft = startLeft + (Math.random()*240 - 120);
+    const startTop = -30;
+    const endTop = rect.height + 40 + Math.random()*60;
+    const startRotate = Math.random()*360;
+    const endRotate = startRotate + (Math.random()*720 - 360);
+    const start = performance.now();
+    function frame(now){
+      const t = Math.min(1, (now - start) / duration);
+      // ease out
+      const ease = (--t)*t*t+1;
+      const curTop = startTop + (endTop - startTop) * ease;
+      const curLeft = startLeft + (endLeft - startLeft) * ease;
+      const curRot = startRotate + (endRotate - startRotate) * ease;
+      el.style.top = curTop + 'px';
+      el.style.left = curLeft + 'px';
+      el.style.transform = `rotate(${curRot}deg)`;
+      if(now - start < duration) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  btn.addEventListener('click', function(){
+    // show message
+    msg.classList.add('show');
+    // little button animation
+    btn.disabled = true;
+    btn.textContent = "Sending cheer...";
+    setTimeout(()=> btn.textContent = "Cheered! 🎉", 800);
+    // confetti
+    makeConfettiBurst(28);
+    // optional second smaller burst
+    setTimeout(()=> makeConfettiBurst(20), 600);
+  });
+
+  // allow Enter to trigger when focused
+  btn.addEventListener('keyup', (e)=> { if(e.key === 'Enter' || e.key === ' ') btn.click(); });
+
+  // launch confetti once when page loads
+  makeConfettiBurst(40);
+
+})();
+</script>
+</body>
+</html>
